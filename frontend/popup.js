@@ -1,32 +1,41 @@
-// Function to detect fake websites based on URL keywords
-function detectFakeWebsite(url) {
-  // Define a list of keywords commonly found in fake websites
-  const fakeKeywords = ["phishing", "scam", "fake", "malware"];
+// Function to make a POST API request to calculate safety percentage
+async function calculateSafetyPercentage(url) {
+  const requestBody = { url: url };
 
-  // Convert the URL to lowercase for case-insensitive matching
-  const lowercaseUrl = url.toLowerCase();
+  try {
+    const response = await fetch("http://127.0.0.1:5000/predict", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(requestBody),
+    });
 
-  // Check if any of the fake keywords are present in the URL
-  for (const keyword of fakeKeywords) {
-    if (lowercaseUrl.includes(keyword)) {
-      return true; // This might be a fake website
+    if (!response.ok) {
+      throw new Error("Failed to fetch data");
+    }
+
+    const data = await response.json();
+
+    const messageElement = document.getElementById("message");
+    if (data?.pred) {
+      messageElement.textContent = data.pred;
+    } else {
+      messageElement.textContent = "Error while fetching data";
+    }
+  } catch (error) {
+    const messageElement = document.getElementById("message");
+    if (messageElement) {
+      messageElement.textContent = "Error while fetching data";
     }
   }
-
-  return false; // No fake keywords found
 }
 
-// Get the current tab's URL and check if it's a fake website
+// Get the current tab's URL and calculate safety percentage
 chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
   const currentTab = tabs[0];
   const tabUrl = currentTab.url;
-
-  if (detectFakeWebsite(tabUrl)) {
-    // If it's a potential fake website, show a warning message
-    document.getElementById("message").textContent =
-      "This website may be fake or unsafe!";
-  } else {
-    // Otherwise, display a message indicating it's not a fake website
-    document.getElementById("message").textContent = "This website seems safe.";
-  }
+  console.log(tabUrl);
+  // Call the function to calculate safety percentage
+  calculateSafetyPercentage(tabUrl);
 });

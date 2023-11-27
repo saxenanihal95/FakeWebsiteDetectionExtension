@@ -1,10 +1,13 @@
 from flask import Flask, request, jsonify
 import joblib  # For loading model
 from feature import FeatureExtractor
+from flask_cors import CORS  # Import the CORS module
 import pandas as pd
 
 # Initialize Flask app
 app = Flask(__name__)
+
+CORS(app)  # Enable CORS for your Flask app
 
 # Load your trained model
 model = joblib.load('./random_forest_classifier.pkl')
